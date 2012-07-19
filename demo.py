@@ -1,8 +1,8 @@
 # modified version of: http://blog.pythonisito.com/2011/07/gevent-zeromq-websockets-and-flot-ftw.html
 import os
-import time
-import math
-import json
+#import time
+#import math
+#import json
 
 import paste.urlparser 
 import gevent
@@ -30,13 +30,18 @@ def main():
     
 def zmq_server(context):
     '''Funnel messages coming from the external tcp socket to an inproc socket'''
+    sock_incoming = context.socket(zmq.SUB)
     sock_outgoing = context.socket(zmq.PUB)
+    sock_incoming.bind('inproc://in_chat')
     sock_outgoing.bind('inproc://queue')
+    sock_incoming.setsocopt(zmq.SUBSCRIBE, "")
     while True:
-        x = time.time() * 1000
-        y = 2.5 * (1 + math.sin(x / 500))
-        sock_outgoing.send(json.dumps(dict(x=x, y=y)))
-        gevent.sleep(0.05)
+        msg = sock_incoming.recv()
+        sock_outgoing.send(msg)
+        #x = time.time() * 1000
+        #y = 2.5 * (1 + math.sin(x / 500))
+        #sock_outgoing.send(json.dumps(dict(x=x, y=y)))
+        #gevent.sleep(0.05)
 
 class WebSocketApp(object):
     '''Funnel messages coming from an inproc zmq socket to the websocket'''
@@ -54,6 +59,14 @@ class WebSocketApp(object):
             #msg = ws.receive()
             ws.send(msg)
 
+
+def chat_reader(context, ws):
+    socket = context.socket(zmq.PUB)
+    socket.connect('inproc://in_chat')
+
+    while True:
+        msg = ws.receive()
+        socket.send(msg)
 
 if __name__ == '__main__':
     main()
