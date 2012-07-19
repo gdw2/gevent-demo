@@ -1,5 +1,5 @@
 $(function() {
-    var ws = new WebSocket("ws://localhost:9999/test");
+    var ws = new WebSocket("ws://192.168.1.133:9999/test");
     var $placeholder = $('#placeholder');
     var datalen = 100;
     var plot = null;

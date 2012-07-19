@@ -30,18 +30,13 @@ def main():
     
 def zmq_server(context):
     '''Funnel messages coming from the external tcp socket to an inproc socket'''
-    #sock_incoming = context.socket(zmq.SUB)
     sock_outgoing = context.socket(zmq.PUB)
-    #sock_incoming.bind('tcp://*:5000')
     sock_outgoing.bind('inproc://queue')
-    #sock_incoming.setsockopt(zmq.SUBSCRIBE, "")
     while True:
-        #msg = sock_incoming.recv()
         x = time.time() * 1000
         y = 2.5 * (1 + math.sin(x / 500))
         sock_outgoing.send(json.dumps(dict(x=x, y=y)))
         gevent.sleep(0.05)
-        #sock_outgoing.send(msg)
 
 class WebSocketApp(object):
     '''Funnel messages coming from an inproc zmq socket to the websocket'''
@@ -56,6 +51,7 @@ class WebSocketApp(object):
         sock.connect('inproc://queue')
         while True:
             msg = sock.recv()
+            #msg = ws.receive()
             ws.send(msg)
 
 
